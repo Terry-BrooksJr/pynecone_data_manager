@@ -1,7 +1,6 @@
 import pynecone as pc
-import .state
-from ..webhook.task_producer import msg_share
-
+from pynecone_data_manager import state
+from pynecone_data_manager.webhook.task_producer import msg_share
 
 def CreateConnection():
     return pc.center(

@@ -4,7 +4,7 @@ import requests
 import json
 import logging
 import sys
-import argparse
+# import argparse
 
 from kafka import KafkaConsumer
 
@@ -76,7 +76,7 @@ def msg_share(destination_url: str) -> None:
     ::return: None
     """
     consumer = KafkaConsumer(
-        bootstrap_servers="ec2-44-210-36-238.compute-1.amazonaws.com:9092",
+        bootstrap_servers="localhist:5092",
         auto_offset_reset="earliest",
     )
     topic_list = [topic for topic in consumer.topics()]

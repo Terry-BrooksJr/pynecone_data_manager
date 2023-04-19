@@ -5,7 +5,7 @@ import pendulum
 import pynecone as pc
 
 from ..webhook import task_producer
-from .state import AlertDialogState, State
+from pynecone_data_manager.state import AlertDialogState, State
 
 now = pendulum.now()
 

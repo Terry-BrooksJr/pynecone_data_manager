@@ -109,6 +109,7 @@ class AlertDialogState(State):
 
 
 class ConnectionState(State):
+    """State Related to the Connection Destinations URLs."""
     new_connection_url: str = "Webhook URL"
     new_connection_name: str = "Name of Connection"
     new_connection_desc: str = "Description of Connection"

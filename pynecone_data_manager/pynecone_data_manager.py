@@ -2,7 +2,7 @@
 
 import pynecone as pc
 
-from .state import State
+from pynecone_data_manager.state import State
 from .pages.create_connection import CreateConnection
 from .pages.dashboard import Dashboard
 
