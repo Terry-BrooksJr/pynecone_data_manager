@@ -1,6 +1,29 @@
+import logging
+import sys
+
 import pynecone as pc
+
 from pynecone_data_manager import state
-from pynecone_data_manager.webhook.task_producer import msg_share
+
+# SECTION -  Logging Configurations
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    datefmt="%m-%d %H:%M",
+    filename="error.log",
+    filemode="w",
+)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+stream_handler = logging.StreamHandler(sys.stdout)
+
+file_handler = logging.FileHandler("logs/runtime_logs.log")
+logger.addHandler(stream_handler)
+logger.addHandler(file_handler)
+stream_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+#!SECTION = Logging Configurations
+
 
 def CreateConnection():
     return pc.center(
@@ -22,7 +45,7 @@ def CreateConnection():
                             pc.link(
                                 pc.button("Back to Dashboard"),
                                 button=True,
-                                href="/",
+                                href="/dashboard",
                                 width="100%",
                             ),
                         ),
@@ -65,7 +88,7 @@ def CreateConnection():
                     pc.link(
                         pc.button("Cancel"),
                         button=True,
-                        href="/",
+                        href="/dashboard",
                         width="100%",
                         background_color="red",
                     ),

@@ -1,15 +1,13 @@
 import logging
 import sys
-import pendulum
-
 from functools import lru_cache
-from fastapi import Depends, FastAPI
-from typing_extensions import Annotated
+
+import pendulum
+from fastapi import FastAPI
 from pydantic import BaseModel
- 
-from webhook.task_producer import msg_share, logger
-from webhook.webhookConfig import Settings
 from state import ConnectionState
+from webhook.task_producer import logger, msg_share
+from webhook.webhookConfig import Settings
 
 now = pendulum.now()
 # SECTION -  Logging Configurations
@@ -24,7 +22,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 logger = logging.getLogger(__name__)
 stream_handler = logging.StreamHandler(sys.stdout)
 
-file_handler = logging.FileHandler("webhook_error.log")
+file_handler = logging.FileHandler("logs/runtime_logs.log")
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 stream_handler.setFormatter(formatter)
@@ -45,12 +43,12 @@ class DestinatioSubmission(BaseModel):
     name: str
     desc: str
     catch_url: str
-    
-    
+
 
 @app.get("/health", status_code=200)
 async def health():
     return {"status": "OK - Webhook API is running"}
+
 
 # @app.get("/history", status_code=200)
 # async def index():
@@ -66,10 +64,25 @@ async def health():
 async def webhook_init(Destination: DestinatioSubmission):
     try:
         logger.debug(f"Webhook URL Registration Requested: {Destination.catch_url}")
+        logger.debug(f"Webhook Name: {Destination.name}")
+        logger.debug(f"Webhook Description: {Destination.desc}")
         try:
             logger.debug(f"Webhook URL Registration Requested: {Destination.catch_url}")
             msg_share(Destination.catch_url)
-            ConnectionState.add_destination(name=Destination.name, desc=Destination.desc, active=True, url=Destination.catch_url, created=now.to_datetime_string())
+            logger.debug(
+                f"Webhook URL Registered Successfully: {Destination.catch_url}"
+            )
+            try:
+                ConnectionState.create_destination(
+                    Destination.name,
+                    Destination.desc,
+                    True,
+                    Destination.catch_url,
+                    now.to_datetime_string(),
+                )
+            except Exception as e:
+                logger.error(str(e))
+                return {"Webhook Catch URL Registered": False}, 500
         except Exception as e:
             logger.error(str(e))
             return {"Webhook Catch URL Registered": False}, 500

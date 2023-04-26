@@ -1,11 +1,9 @@
 """Welcome to Pynecone! This file outlines the steps to create a basic app."""
-import uuid
 
 import pendulum
 import pynecone as pc
 
-from ..webhook import task_producer
-from pynecone_data_manager.state import AlertDialogState, State
+from pynecone_data_manager.state import AlertDialogState
 
 now = pendulum.now()
 
@@ -65,7 +63,7 @@ def Dashboard():
                         "Status",
                         "URL",
                         "Created",
-                        "Modified",
+                        "Modify",
                         "Actions",
                     ],
                     rows=[
@@ -100,33 +98,44 @@ def Dashboard():
                         ),
                     ],
                     variant="striped",
-                )
-            ),
-        ),
-        pc.box(
-            pc.alert_dialog(
-                pc.alert_dialog_overlay(
-                    pc.alert_dialog_content(
-                        pc.alert_dialog_header("Confirmation of Connection Deletion"),
-                        pc.alert_dialog_body(
-                            "Please Confirm You Would Like to Delete This Connection. This Action Cannot Be Undone."
-                        ),
-                        pc.alert_dialog_footer(
-                            pc.button(
-                                "Close",
-                                on_click=AlertDialogState.change,
-                                margin_right="3em",
-                            ),
-                            pc.button(
-                                "Confirm Deletion",
-                                on_click=State.delete_destination(),
-                                border="1px solid red",
-                                background_color="red",
-                            ),
-                        ),
-                    )
                 ),
-                is_open=AlertDialogState.show,
+                pc.divider(),
+                pc.table(
+                    headers=[
+                        "Transmission ID",
+                        "Tranmisssion Date",
+                        "Transmission Time",
+                        "Transmission Status",
+                    ],
+                    rows=[("1", "foo", "bar", "Success")],
+                    variant="striped",
+                ),
             ),
-        ),
+        )
     )
+    # pc.box(
+    #         pc.alert_dialog(
+    #             pc.alert_dialog_overlay(
+    #                 pc.alert_dialog_content(
+    #                     pc.alert_dialog_header("Confirmation of Connection Deletion"),
+    #                     pc.alert_dialog_body(
+    #                         "Please Confirm You Would Like to Delete This Connection. This Action Cannot Be Undone."
+    #                     ),
+    #                     pc.alert_dialog_footer(
+    #                         pc.button(
+    #                             "Close",
+    #                             on_click=AlertDialogState.change,
+    #                             margin_right="3em",
+    #                         ),
+    #                         pc.button(
+    #                             "Confirm Deletion",
+    #                             on_click=State.delete_destination(),
+    #                             border="1px solid red",
+    #                             background_color="red",
+    #                         ),
+    #                     ),
+    #                 )
+    #             ),
+    #             is_open=AlertDialogState.show,
+    #         )
+    # )

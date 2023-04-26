@@ -1,14 +1,27 @@
-#!/usr/bin/python3
-import requests
-
 import json
 import logging
 import sys
-# import argparse
 
-from kafka import KafkaConsumer
+import requests
+from confluent_kafka import Consumer
+
+# URL = "https://6b7c3309-a6ac-46d8-b8e4-e45cffa50c20.mock.pstmn.io"
 
 
+def read_ccloud_config(config_file):
+    conf = {}
+    with open(config_file) as fh:
+        for line in fh:
+            line = line.strip()
+            if len(line) != 0 and line[0] != "#":
+                parameter, value = line.strip().split("=", 1)
+                conf[parameter] = value.strip()
+        return conf
+
+
+props = read_ccloud_config("client.properties")
+props["group.id"] = "python-group-1"
+props["auto.offset.reset"] = "earliest"
 # SECTION -  Logging Configurations
 logging.basicConfig(
     level=logging.DEBUG,
@@ -21,7 +34,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 logger = logging.getLogger(__name__)
 stream_handler = logging.StreamHandler(sys.stdout)
 
-file_handler = logging.FileHandler("error.log")
+file_handler = logging.FileHandler("logs/runtime_logs.log")
 logger.addHandler(stream_handler)
 logger.addHandler(file_handler)
 stream_handler.setFormatter(formatter)
@@ -31,9 +44,10 @@ file_handler.setFormatter(formatter)
 
 # SECTION - Webhook Transmission Logic
 def send_webhook(msg: str, destination_url: str) -> int:
-    """Send a webhook to a  a specified URL
+    """Send a webhook to a  a specified URL.
 
     Args:
+    ----
     :param msg: task details
     :return status_code: Result of HTTP POST Request
     """
@@ -68,36 +82,32 @@ def send_webhook(msg: str, destination_url: str) -> int:
 
 
 # SECTION - Kafka Message Consumption and Transmissions (Core Logic)
-def msg_share(destination_url: str) -> None:
-    """
-    ::param stream_ids: The list stream id that is assigned by the Chooch Dashboard you want to forward predictions from
-    ::param kafka_server_ip: The ip address of the kafka server that will be used to forward the messages (Heroku/AWS/Google Cloud)
-    ::param kafka_topic: The topic to which the messages will be forwarded to at the kafka server ip
+def msg_share(URL: str) -> None:
+    """The utility function that will be called to send the messages.
+
+    Args:
+    ----
+    ::param URL: The ip address of the kafka server that will be used to forward the messages (Heroku/AWS/Google Cloud)
     ::return: None
     """
-    consumer = KafkaConsumer(
-        bootstrap_servers="localhist:5092",
-        auto_offset_reset="earliest",
-    )
-    topic_list = [topic for topic in consumer.topics()]
-    for topic in topic_list:
-        if "alert" in topic:
-            logger.info(f"Successfully subscribed to {topic}")
-
-    consumer.subscribe("demo_messages")
-
-    for message in consumer:
-        msg = message.value.decode("utf-8")
-        msg = json.loads(msg)
-        resp = send_webhook(msg, destination_url)
-        logger.info(" -- Status", resp, " -- Message \= ", msg)
-        yield resp
+    try:
+        consumer = Consumer(props)
+        consumer.subscribe(["orders", "users"])
+    except Exception as e:
+        logger.error(f"First Level of Failure {str(e)}")
+    try:
+        while True:
+            msg = consumer.poll(1.0)
+            if msg is not None and msg.error() is None:
+                resp = requests.post(URL, msg.value().decode("utf-8"))
+                logger.info(
+                    f"-- Status = {resp} | -- Message = {msg.value().decode('utf-8')}"
+                )
+    except Exception as e:
+        logger.error(f"Second Level Failure {str(e)}")
 
 
 #!SECTION - Kafka Message Consumption and Transmissions (Core Logic)
-msg_share("https://6b7c3309-a6ac-46d8-b8e4-e45cffa50c20.mock.pstmn.io/alerts")
+# # msg_share("https://6b7c3309-a6ac-46d8-b8e4-e45cffa50c20.mock.pstmn.io/alerts")
 # if "__main__" == __name__:
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--destination_url", type=str, required=True, default="")
-#     args = parser.parse_args()
-#     msg_share(args.destination_url)
+#     msg_share()

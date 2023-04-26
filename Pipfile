@@ -12,6 +12,11 @@ flask = "*"
 gunicorn = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 grequests = "*"
+faker = "*"
+confluent-kafka = "*"
+validators = "*"
+pylint = "*"
+polling = "*"
 
 [dev-packages]
 black = "*"
